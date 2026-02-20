@@ -28,7 +28,14 @@ import {
   RGBA,
 } from "@opentui/core"
 import { Prompt, type PromptRef } from "@tui/component/prompt"
-import type { AssistantMessage, Part, ToolPart, UserMessage, TextPart, ReasoningPart } from "@opencode-ai/sdk/v2"
+import type {
+  AssistantMessage,
+  Part,
+  ToolPart,
+  UserMessage,
+  TextPart,
+  ReasoningPart,
+} from "@opencode-ai/sdk/v2"
 import { useLocal } from "@tui/context/local"
 import { Locale } from "@/util/locale"
 import type { Tool } from "@/tool/tool"
@@ -48,7 +55,7 @@ import type { SkillTool } from "@/tool/skill"
 import { useKeyboard, useRenderer, useTerminalDimensions, type JSX } from "@opentui/solid"
 import { useSDK } from "@tui/context/sdk"
 import { useCommandDialog } from "@tui/component/dialog-command"
-import { useKeybind } from "@tui/context/keybind"
+import { useKeybind, type KeybindKey } from "@tui/context/keybind"
 import { Header } from "./header"
 import { parsePatch } from "diff"
 import { useDialog } from "../../ui/dialog"
@@ -125,6 +132,17 @@ export function Session() {
     return sync.data.session
       .filter((x) => x.parentID === parentID || x.id === parentID)
       .toSorted((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+  })
+  const activeChildren = createMemo(() => {
+    const currentID = session()?.parentID ?? session()?.id
+    return sync.data.session
+      .filter((s) => s.parentID === currentID)
+      .filter((s) => {
+        const status = sync.data.session_status[s.id]?.type
+        return status === "busy" || status === "retry"
+      })
+      .toSorted((a, b) => (a.id > b.id ? -1 : a.id < b.id ? 1 : 0))
+      .slice(0, 9)
   })
   const messages = createMemo(() => sync.data.message[route.sessionID] ?? [])
   const permissions = createMemo(() => {
@@ -922,6 +940,20 @@ export function Session() {
         dialog.clear()
       },
     },
+    ...([1, 2, 3, 4, 5, 6, 7, 8, 9] as const).map((n) => ({
+      title: `Go to active sub-agent ${n}`,
+      value: `session.active_child.${n}`,
+      keybind: `session_active_child_${n}` as KeybindKey,
+      category: "Session",
+      hidden: true,
+      onSelect: (dialog: { clear: () => void }) => {
+        const target = activeChildren()[n - 1]
+        if (target) {
+          navigate({ type: "session", sessionID: target.id })
+        }
+        dialog.clear()
+      },
+    })),
   ])
 
   const revertInfo = createMemo(() => session()?.revert)

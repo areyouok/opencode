@@ -130,7 +130,7 @@ export function SubagentFooter() {
               <box
                 onMouseOver={() => setHover("child")}
                 onMouseOut={() => setHover(null)}
-                onMouseUp={() => command.run("session.child.first.subagent")}
+                onMouseUp={() => keymap.dispatchCommand("session.child.first.subagent")}
                 backgroundColor={hover() === "child" ? theme.backgroundElement : theme.backgroundPanel}
               >
                 <text fg={theme.text}>

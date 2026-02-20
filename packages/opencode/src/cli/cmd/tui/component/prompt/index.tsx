@@ -71,6 +71,15 @@ export function Prompt(props: PromptProps) {
   const dialog = useDialog()
   const toast = useToast()
   const status = createMemo(() => sync.data.session_status?.[props.sessionID ?? ""] ?? { type: "idle" })
+  const subagents = createMemo(() => {
+    if (!props.sessionID) return { total: 0, active: 0 }
+    const children = sync.data.session.filter((s) => s.parentID === props.sessionID)
+    const active = children.filter((child) => {
+      const st = sync.data.session_status[child.id]?.type
+      return st === "busy" || st === "retry"
+    }).length
+    return { total: children.length, active }
+  })
   const history = usePromptHistory()
   const stash = usePromptStash()
   const command = useCommandDialog()
@@ -1138,6 +1147,14 @@ export function Prompt(props: PromptProps) {
                   </text>
                   <text fg={theme.text}>
                     {keybind.print("command_list")} <span style={{ fg: theme.textMuted }}>commands</span>
+                    <Show when={subagents().total > 0}>
+                      <Show when={subagents().active > 0} fallback={<span style={{ fg: theme.textMuted }}> </span>}>
+                        <span style={{ fg: theme.warning }}> ⚡</span>
+                      </Show>
+                      <span style={{ fg: theme.textMuted }}>
+                        {subagents().active}/{subagents().total} sub agents
+                      </span>
+                    </Show>
                   </text>
                 </Match>
                 <Match when={store.mode === "shell"}>

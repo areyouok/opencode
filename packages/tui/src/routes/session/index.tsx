@@ -432,15 +432,18 @@ export function Session() {
   }
 
   function moveFirstChild() {
-    if (children().length === 1) return
-    const next = children().find((x) => !!x.parentID)
+    const currentID = session()?.id
+    if (!currentID) return
+    const next = sync.data.session.find((s) => s.parentID === currentID)
     if (next) enterChild(next.id)
   }
 
   function moveChild(direction: number) {
-    if (children().length === 1) return
+    const currentParentID = session()?.parentID
+    if (!currentParentID) return
 
-    const sessions = children().filter((x) => !!x.parentID)
+    const sessions = children().filter((x) => x.parentID === currentParentID)
+    if (sessions.length <= 1) return
     let next = sessions.findIndex((x) => x.id === session()?.id) - direction
 
     if (next >= sessions.length) next = 0

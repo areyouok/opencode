@@ -17,18 +17,19 @@ export function SubagentFooter() {
 
   const subagentInfo = createMemo(() => {
     const s = session()
-    if (!s) return { label: "Subagent", index: 0, total: 0 }
+    if (!s) return { label: "Subagent", index: 0, total: 0, hasChildren: false }
     const agentMatch = s.title.match(/@(\w+) subagent/)
     const label = agentMatch ? Locale.titlecase(agentMatch[1]) : "Subagent"
 
-    if (!s.parentID) return { label, index: 0, total: 0 }
+    if (!s.parentID) return { label, index: 0, total: 0, hasChildren: false }
 
     const siblings = sync.data.session
       .filter((x) => x.parentID === s.parentID)
       .toSorted((a, b) => a.time.created - b.time.created)
     const index = siblings.findIndex((x) => x.id === s.id)
+    const hasChildren = sync.data.session.some((x) => x.parentID === s.id)
 
-    return { label, index: index + 1, total: siblings.length }
+    return { label, index: index + 1, total: siblings.length, hasChildren }
   })
 
   const usage = createMemo(() => {
@@ -58,8 +59,8 @@ export function SubagentFooter() {
   const { theme } = useTheme()
   const keybind = useKeybind()
   const command = useCommandDialog()
-  const [hover, setHover] = createSignal<"parent" | "prev" | "next" | null>(null)
-  useTerminalDimensions()
+  const [hover, setHover] = createSignal<"parent" | "prev" | "next" | "child" | null>(null)
+  const dimensions = useTerminalDimensions()
 
   return (
     <box flexShrink={0}>
@@ -123,6 +124,18 @@ export function SubagentFooter() {
                 Next <span style={{ fg: theme.textMuted }}>{keybind.print("session_child_cycle")}</span>
               </text>
             </box>
+            <Show when={subagentInfo().hasChildren}>
+              <box
+                onMouseOver={() => setHover("child")}
+                onMouseOut={() => setHover(null)}
+                onMouseUp={() => command.trigger("session.child.first")}
+                backgroundColor={hover() === "child" ? theme.backgroundElement : theme.backgroundPanel}
+              >
+                <text fg={theme.text}>
+                  Child <span style={{ fg: theme.textMuted }}>{keybind.print("session_child_first")}</span>
+                </text>
+              </box>
+            </Show>
           </box>
         </box>
       </box>

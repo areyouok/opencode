@@ -964,10 +964,23 @@ export function Session() {
       keybind: "session_child_first",
       category: "Session",
       hidden: true,
+      enabled: !session()?.parentID,
       onSelect: (dialog) => {
         moveFirstChild()
         dialog.clear()
       },
+    },
+    {
+      title: "Go to child session",
+      value: "session.child.first.subagent",
+      keybind: "session_child_first_subagent",
+      category: "Session",
+      hidden: true,
+      enabled: !!session()?.parentID,
+      onSelect: childSessionHandler((dialog) => {
+        moveFirstChild()
+        dialog.clear()
+      }),
     },
     {
       title: "Go to parent session",

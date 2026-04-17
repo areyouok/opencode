@@ -152,6 +152,15 @@ const sessionBindingCommands = [
   "session.parent",
   "session.child.next",
   "session.child.previous",
+  "session.active_child.1",
+  "session.active_child.2",
+  "session.active_child.3",
+  "session.active_child.4",
+  "session.active_child.5",
+  "session.active_child.6",
+  "session.active_child.7",
+  "session.active_child.8",
+  "session.active_child.9",
 ] as const
 
 const context = createContext<{
@@ -190,6 +199,37 @@ export function Session() {
     return sync.data.session
       .filter((x) => x.parentID === parentID || x.id === parentID)
       .toSorted((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+  })
+  const activeChildren = createMemo(() => {
+    const rootID = session()?.parentID ?? session()?.id
+    const byParent = new Map<string, (typeof sync.data.session)[number][]>()
+    for (const s of sync.data.session) {
+      if (!s.parentID) continue
+      const list = byParent.get(s.parentID) ?? []
+      list.push(s)
+      byParent.set(s.parentID, list)
+    }
+    const descendants: (typeof sync.data.session)[number][] = []
+    const queue = [rootID]
+    const visited = new Set<string>()
+    while (queue.length > 0) {
+      const pid = queue.pop()!
+      if (visited.has(pid)) continue
+      visited.add(pid)
+      const ch = byParent.get(pid)
+      if (!ch) continue
+      for (const c of ch) {
+        descendants.push(c)
+        queue.push(c.id)
+      }
+    }
+    return descendants
+      .filter((s) => {
+        const st = sync.data.session_status[s.id]?.type
+        return st === "busy" || st === "retry"
+      })
+      .toSorted((a, b) => b.time.created - a.time.created)
+      .slice(0, 9)
   })
   const messages = createMemo(() => sync.data.message[route.sessionID] ?? [])
   const permissions = createMemo(() => {
@@ -1045,6 +1085,19 @@ export function Session() {
         dialog.clear()
       }),
     },
+    ...([1, 2, 3, 4, 5, 6, 7, 8, 9] as const).map((n) => ({
+      title: `Go to active sub-agent ${n}`,
+      value: `session.active_child.${n}`,
+      category: "Session",
+      hidden: true,
+      run: () => {
+        const target = activeChildren()[n - 1]
+        if (target) {
+          navigate({ type: "session", sessionID: target.id })
+        }
+        dialog.clear()
+      },
+    })),
   ])
 
   const sessionCommands = createMemo(() =>
@@ -1428,7 +1481,10 @@ function AssistantMessage(props: { message: AssistantMessage; parts: Part[]; las
     return props.message.time.completed - user.time.created
   })
 
-  const childShortcut = useCommandShortcut("session.child.first")
+  const childShortcutRoot = useCommandShortcut("session.child.first")
+  const childShortcutSubagent = useCommandShortcut("session.child.first.subagent")
+  const isSubagent = createMemo(() => !!sync.session.get(props.message.sessionID)?.parentID)
+  const childShortcut = createMemo(() => isSubagent() ? childShortcutSubagent() : childShortcutRoot())
 
   return (
     <>

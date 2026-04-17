@@ -138,6 +138,7 @@ const sessionBindingCommands = [
   "session.copy",
   "session.export",
   "session.child.first",
+  "session.child.first.subagent",
   "session.parent",
   "session.child.next",
   "session.child.previous",
@@ -1037,10 +1038,22 @@ export function Session() {
       value: "session.child.first",
       category: "Session",
       hidden: true,
+      enabled: !session()?.parentID,
       run: () => {
         dialog.clear()
         moveFirstChild()
       },
+    },
+    {
+      title: "Go to child session",
+      value: "session.child.first.subagent",
+      category: "Session",
+      hidden: true,
+      enabled: !!session()?.parentID,
+      run: childSessionHandler(() => {
+        moveFirstChild()
+        dialog.clear()
+      }),
     },
     {
       title: "Go to parent session",

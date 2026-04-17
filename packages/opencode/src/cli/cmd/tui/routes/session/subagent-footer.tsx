@@ -128,11 +128,11 @@ export function SubagentFooter() {
               <box
                 onMouseOver={() => setHover("child")}
                 onMouseOut={() => setHover(null)}
-                onMouseUp={() => command.trigger("session.child.first")}
+                onMouseUp={() => command.trigger("session.child.first.subagent")}
                 backgroundColor={hover() === "child" ? theme.backgroundElement : theme.backgroundPanel}
               >
                 <text fg={theme.text}>
-                  Child <span style={{ fg: theme.textMuted }}>{keybind.print("session_child_first")}</span>
+                  Child <span style={{ fg: theme.textMuted }}>{keybind.print("session_child_first_subagent")}</span>
                 </text>
               </box>
             </Show>

@@ -53,7 +53,8 @@ import { useKeyboard, useRenderer, useTerminalDimensions, type JSX } from "@open
 import { useSDK } from "@tui/context/sdk"
 import { useCommandDialog } from "@tui/component/dialog-command"
 import type { DialogContext } from "@tui/ui/dialog"
-import { useKeybind } from "@tui/context/keybind"
+import { useKeybind, type KeybindKey } from "@tui/context/keybind"
+import { parsePatch } from "diff"
 import { useDialog } from "../../ui/dialog"
 import { TodoItem } from "../../component/todo-item"
 import { DialogMessage } from "./dialog-message"
@@ -131,6 +132,37 @@ export function Session() {
     return sync.data.session
       .filter((x) => x.parentID === parentID || x.id === parentID)
       .toSorted((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+  })
+  const activeChildren = createMemo(() => {
+    const rootID = session()?.parentID ?? session()?.id
+    const byParent = new Map<string, (typeof sync.data.session)[number][]>()
+    for (const s of sync.data.session) {
+      if (!s.parentID) continue
+      const list = byParent.get(s.parentID) ?? []
+      list.push(s)
+      byParent.set(s.parentID, list)
+    }
+    const descendants: (typeof sync.data.session)[number][] = []
+    const queue = [rootID]
+    const visited = new Set<string>()
+    while (queue.length > 0) {
+      const pid = queue.pop()!
+      if (visited.has(pid)) continue
+      visited.add(pid)
+      const ch = byParent.get(pid)
+      if (!ch) continue
+      for (const c of ch) {
+        descendants.push(c)
+        queue.push(c.id)
+      }
+    }
+    return descendants
+      .filter((s) => {
+        const st = sync.data.session_status[s.id]?.type
+        return st === "busy" || st === "retry"
+      })
+      .toSorted((a, b) => b.time.created - a.time.created)
+      .slice(0, 9)
   })
   const messages = createMemo(() => sync.data.message[route.sessionID] ?? [])
   const permissions = createMemo(() => {
@@ -1009,6 +1041,20 @@ export function Session() {
         dialog.clear()
       }),
     },
+    ...([1, 2, 3, 4, 5, 6, 7, 8, 9] as const).map((n) => ({
+      title: `Go to active sub-agent ${n}`,
+      value: `session.active_child.${n}`,
+      keybind: `session_active_child_${n}` as KeybindKey,
+      category: "Session",
+      hidden: true,
+      onSelect: (dialog: { clear: () => void }) => {
+        const target = activeChildren()[n - 1]
+        if (target) {
+          navigate({ type: "session", sessionID: target.id })
+        }
+        dialog.clear()
+      },
+    })),
   ])
 
   const revertInfo = createMemo(() => session()?.revert)

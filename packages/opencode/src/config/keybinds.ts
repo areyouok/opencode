@@ -108,6 +108,15 @@ const KeybindsSchema = Schema.Struct({
   session_child_cycle: keybind("right", "Go to next child session"),
   session_child_cycle_reverse: keybind("left", "Go to previous child session"),
   session_parent: keybind("up", "Go to parent session"),
+  session_active_child_1: keybind("<leader>1", "Go to newest active sub-agent"),
+  session_active_child_2: keybind("<leader>2", "Go to 2nd newest active sub-agent"),
+  session_active_child_3: keybind("<leader>3", "Go to 3rd newest active sub-agent"),
+  session_active_child_4: keybind("<leader>4", "Go to 4th newest active sub-agent"),
+  session_active_child_5: keybind("<leader>5", "Go to 5th newest active sub-agent"),
+  session_active_child_6: keybind("<leader>6", "Go to 6th newest active sub-agent"),
+  session_active_child_7: keybind("<leader>7", "Go to 7th newest active sub-agent"),
+  session_active_child_8: keybind("<leader>8", "Go to 8th newest active sub-agent"),
+  session_active_child_9: keybind("<leader>9", "Go to 9th newest active sub-agent"),
   // `terminal_suspend` was formerly `.default("ctrl+z").transform((v) => win32 ? "none" : v)`,
   // but `tui.ts` already forces the binding to "none" on win32 before calling
   // `Keybinds.parse(...)`, so the schema-level transform was redundant.

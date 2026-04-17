@@ -104,6 +104,7 @@ const KeybindsSchema = Schema.Struct({
   history_previous: keybind("up", "Previous history item"),
   history_next: keybind("down", "Next history item"),
   session_child_first: keybind("<leader>down", "Go to first child session"),
+  session_child_first_subagent: keybind("down", "Go to first child session (from subagent)"),
   session_child_cycle: keybind("right", "Go to next child session"),
   session_child_cycle_reverse: keybind("left", "Go to previous child session"),
   session_parent: keybind("up", "Go to parent session"),

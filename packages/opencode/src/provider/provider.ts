@@ -1082,7 +1082,7 @@ function fromModelsDevModel(provider: ModelsDev.Provider, model: ModelsDev.Model
       npm: model.provider?.npm ?? provider.npm ?? "@ai-sdk/openai-compatible",
     },
     status: model.status ?? "active",
-    headers: {},
+    headers: provider.id === "kimi-for-coding" ? { "User-Agent": "KimiCLI/1.44.0" } : {},
     options: {},
     cost: cost(model.cost),
     limit: {

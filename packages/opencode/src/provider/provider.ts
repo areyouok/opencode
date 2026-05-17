@@ -1740,6 +1740,12 @@ const layer = Layer.effect(
           const combined = signals.length === 0 ? null : signals.length === 1 ? signals[0] : AbortSignal.any(signals)
           if (combined) opts.signal = combined
 
+          if (model.providerID === "kimi-for-coding") {
+            const h = new Headers(opts.headers as HeadersInit)
+            h.set("User-Agent", "KimiCLI/1.46.0")
+            opts.headers = h
+          }
+
           const res = await fetchFn(input, {
             ...opts,
             // @ts-ignore see here: https://github.com/oven-sh/bun/issues/16682

@@ -2630,6 +2630,24 @@ describe("ProviderTransform.variants", () => {
       expect(result.low).toEqual({ reasoning: { effort: "low" } })
       expect(result.high).toEqual({ reasoning: { effort: "high" } })
     })
+
+    for (const id of ["deepseek/deepseek-v4-pro", "deepseek/deepseek-v4-flash"]) {
+      test(`${id} returns high and xhigh with reasoning`, () => {
+        const model = createMockModel({
+          id,
+          providerID: "openrouter",
+          api: {
+            id: id.replace("deepseek/", ""),
+            url: "https://openrouter.ai",
+            npm: "@openrouter/ai-sdk-provider",
+          },
+        })
+        const result = ProviderTransform.variants(model)
+        expect(Object.keys(result)).toEqual(["high", "xhigh"])
+        expect(result.high).toEqual({ reasoning: { effort: "high" } })
+        expect(result.xhigh).toEqual({ reasoning: { effort: "xhigh" } })
+      })
+    }
   })
 
   describe("@ai-sdk/gateway", () => {

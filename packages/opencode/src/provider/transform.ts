@@ -673,7 +673,15 @@ export function variants(model: Provider.Model): Record<string, Record<string, a
   if (id.includes("grok")) return {}
 
   switch (model.api.npm) {
-    case "@openrouter/ai-sdk-provider":
+    case "@openrouter/ai-sdk-provider": {
+      // DeepSeek V4 Pro/Flash on OpenRouter only support "high" and "xhigh" reasoning efforts
+      // (not the full OPENAI_EFFORTS ladder). xhigh maps to max reasoning.
+      if (id.includes("deepseek-v4-pro") || id.includes("deepseek-v4-flash")) {
+        return {
+          high: { reasoning: { effort: "high" } },
+          xhigh: { reasoning: { effort: "xhigh" } },
+        }
+      }
       if (!id.includes("gpt") && !id.includes("gemini-3") && !id.includes("claude")) return {}
       return Object.fromEntries(
         (id.includes("gpt") ? openaiCompatibleReasoningEfforts(id) : OPENAI_EFFORTS).map((effort) => [
@@ -681,6 +689,7 @@ export function variants(model: Provider.Model): Record<string, Record<string, a
           { reasoning: { effort } },
         ]),
       )
+    }
 
     case "ai-gateway-provider": {
       // Cloudflare AI Gateway routes every upstream through its OpenAI-compatible
